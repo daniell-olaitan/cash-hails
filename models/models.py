@@ -8,11 +8,25 @@ from models.parent_models import ParentModel
 from typing import Dict
 
 
+products_transactions = db.Table(
+    'products_transactions',
+    db.Column('product_id', db.String(60), db.ForeignKey('products.id'), primary_key=True),
+    db.Column('transaction_id', db.String(60), db.ForeignKey('transactions.id'), primary_key=True)
+)
+
+
 class User(ParentModel, db.Model):
     __tablename__ = 'users'
     phone = db.Column(db.String(16), nullable=False, unique=True)
     username = db.Column(db.String(128), nullable=False)
     password = db.Column(db.String(60), nullable=False)
+    wallet = db.relationship('Wallet', uselist=False, backref='user', cascade='all')
+    orders = db.relationship(
+        'Order',
+        backref='user',
+        cascade='all, delete-orphan',
+        lazy='dynamic'
+    )
 
 
 class Admin(User, db.Model):
@@ -20,6 +34,11 @@ class Admin(User, db.Model):
     bank_name = db.Column(db.String(60))
     bank_account_name = db.Column(db.String(128))
     bank_account_number = db.Column(db.String(10), unique=True)
+    transactions = db.relationship(
+        'Transaction',
+        backref='admin',
+        lazy='dynamic'
+    )
 
 
 class Wallet(ParentModel, db.Model):
@@ -27,6 +46,11 @@ class Wallet(ParentModel, db.Model):
     user_id = db.Column(db.String(60), db.ForeignKey('users.id'), nullable=False)
     balance = db.Column(db.Float, nullable=False)
     balance = db.Column(db.Numeric(precision=20, scale=2), nullable=False, default=0)
+    transactions = db.relationship(
+        'Transaction',
+        backref='wallet',
+        lazy='dynamic'
+    )
 
 
 class Order(ParentModel, db.Model):
@@ -44,6 +68,17 @@ class Product(ParentModel, db.Model):
     duration = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Numeric(precision=20, scale=2), nullable=False)
     daily_income = db.Column(db.Numeric(precision=20, scale=2), nullable=False)
+    transactions = db.relationship(
+        'Transaction',
+        secondary=products_transactions,
+        backref=db.backref('products', lazy='dynamic')
+    )
+
+    orders = db.relationship(
+        'Order',
+        backref='product',
+        lazy='dynamic'
+    )
 
 
 class Transaction(ParentModel, db.Model):
