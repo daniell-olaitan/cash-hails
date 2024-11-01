@@ -18,6 +18,9 @@ def create_app(config_type: str) -> Flask:
     app.url_map.strict_slashes = False
     app.config.from_object(config[config_type])
 
+    from app.app_auth import auth_views
+    app.register_blueprint(auth_views)
+
     CORS(app, resources={
         r'/*': {
             'origins': '*'
@@ -26,6 +29,7 @@ def create_app(config_type: str) -> Flask:
 
     jwt.init_app(app)
     bcrypt.init_app(app)
+    db.init_app(app)
     with app.app_context():
         db.create_all()
 

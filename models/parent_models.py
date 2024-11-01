@@ -1,7 +1,7 @@
 import uuid
 from models import db
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict
 
 
 class ParentModel:
@@ -19,7 +19,7 @@ class ParentModel:
 
     def to_dict(self) -> Dict:
         model_dict = {}
-        model = vars(self)
+        model = {column.name: getattr(self, column.name) for column in self.__table__.columns}
         for key, value in model.items():
             if key == 'created_at':
                 model_dict['created_at'] = self.created_at.isoformat()

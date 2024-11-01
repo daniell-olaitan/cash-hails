@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from app import app_bcrypt
+from exc import AbortException
 from sqlalchemy.exc import IntegrityError
 from typing import (
     Type,
@@ -14,8 +14,10 @@ class DBStorage(SQLAlchemy):
     def new(self, model_type: Type[Model], **fields: Dict) -> Model:
         for field in fields.keys():
             if field not in model_type.__table__.columns.keys():
-                raise ValueError(
-                    f"{field} field does not exist in {model_type.__name__} table"
+                raise AbortException(
+                    {'error': f"{field} field does not exist in {model_type.__name__} table"},
+                    'Invalid Input',
+                    422
                 )
 
         return model_type(**fields)
@@ -28,7 +30,7 @@ class DBStorage(SQLAlchemy):
             return self.session.get(model_type, model.id)
         except IntegrityError as err:
             self.session.rollback()
-            raise ValueError(f"Database error: {err}")
+            raise AbortException({'error': str(err).split('\n')[0]})
 
     def save_new(self, model_type: Type[Model], **fields: Dict) -> Model:
         model = self.new(model_type, **fields)
@@ -38,32 +40,33 @@ class DBStorage(SQLAlchemy):
         try:
             model = self.session.get(model_type, id)
             if not model:
-                raise ValueError('model does not exist')
+                raise AbortException({'error':'model does not exist' }, 'Not Found', 404)
 
             self.session.delete(model)
             self.session.commit()
         except IntegrityError as err:
             self.session.rollback()
-            raise ValueError(f"Database error: {err}")
+            raise AbortException({'error': str(err).split('\n')[0]})
 
     def update(self, model_type: Type[Model], id: str, **fields: Dict) -> Model:
-        from datetime import datetime
         from app import bcrypt
 
         model = self.session.get(model_type, id)
         if not model:
-            raise ValueError('model does not exist')
+            raise AbortException({'error':'model does not exist' }, 'Not Found', 404)
 
-        for key, value in fields.items():
-            if key not in model.__table__.columns.keys():
-                raise ValueError(
-                    f"{key} field does not exist in {model_type.__name__} table"
+        for field, value in fields.items():
+            if field not in model.__table__.columns.keys():
+                raise AbortException(
+                    {'error': f"{field} field does not exist in {model_type.__name__} table"},
+                    'Invalid Input',
+                    422
                 )
 
-            if key == 'password':
+            if field == 'password':
                 value = bcrypt.generate_password_hash(value).decode('utf-8')
 
-            setattr(model, key, value)
+            setattr(model, field, value)
 
             return self.save(model_type, model)
 
