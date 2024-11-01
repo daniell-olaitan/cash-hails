@@ -10,8 +10,8 @@ class ParentModel:
         primary_key=True,
         nullable=False,
     )
-    created_at = db.Column(db.DateTime, default=datetime.now())
-    updated_at = db.Column(db.DateTime, default=datetime.now())
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)

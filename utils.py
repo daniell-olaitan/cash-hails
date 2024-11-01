@@ -7,12 +7,12 @@ def generate_id(prefix: str) -> str:
 
 
 class TransactionStatus(Enum):
-    FAIL = 0
-    SUCCESS = 1
-    PENDING = 2
+    FAIL = 'failed'
+    SUCCESS = 'successful'
+    PENDING = 'pending'
 
 
 class TransactionType(Enum):
-    WITHDRAWAL = 0
-    DEPOSIT = 1
-    PURCHASE = 2
+    WITHDRAWAL = 'withdrawal'
+    DEPOSIT = 'deposit'
+    PURCHASE = 'purchase'

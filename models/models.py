@@ -44,7 +44,6 @@ class Admin(User, db.Model):
 class Wallet(ParentModel, db.Model):
     __tablename__ = 'wallets'
     user_id = db.Column(db.String(60), db.ForeignKey('users.id'), nullable=False)
-    balance = db.Column(db.Float, nullable=False)
     balance = db.Column(db.Numeric(precision=20, scale=2), nullable=False, default=0)
     transactions = db.relationship(
         'Transaction',

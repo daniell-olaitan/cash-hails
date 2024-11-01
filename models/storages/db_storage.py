@@ -64,7 +64,6 @@ class DBStorage(SQLAlchemy):
                 value = bcrypt.generate_password_hash(value).decode('utf-8')
 
             setattr(model, key, value)
-            model.updated_at = datetime.now()
 
             return self.save(model_type, model)
 
